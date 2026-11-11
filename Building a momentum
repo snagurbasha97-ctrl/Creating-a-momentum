@@ -1,0 +1,140 @@
+
+import csv
+import os
+from datetime import datetime
+
+FILE_NAME = "expenses.csv"
+
+
+# Create CSV file if it does not exist
+def initialize_file():
+    if not os.path.exists(FILE_NAME):
+        with open(FILE_NAME, "w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(["Date", "Category", "Description", "Amount"])
+
+
+# Add a new expense
+def add_expense():
+    try:
+        date = input("Enter date (YYYY-MM-DD): ")
+        datetime.strptime(date, "%Y-%m-%d")
+
+        category = input("Enter category: ")
+        description = input("Enter description: ")
+        amount = float(input("Enter amount: "))
+
+        if amount <= 0:
+            print("Amount must be greater than zero!")
+            return
+
+        with open(FILE_NAME, "a", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow([date, category, description, amount])
+
+        print("Expense added successfully!")
+
+    except ValueError:
+        print("Invalid date or amount!")
+
+
+# Read expense records
+def get_expenses():
+    with open(FILE_NAME, "r") as file:
+        reader = csv.DictReader(file)
+        return list(reader)
+
+
+# Display all expenses
+def view_expenses():
+    expenses = get_expenses()
+
+    if not expenses:
+        print("No expenses found.")
+        return
+
+    print("\n--- EXPENSE RECORDS ---")
+    for expense in expenses:
+        print(expense)
+
+
+# Category-wise spending summary
+def category_summary():
+    expenses = get_expenses()
+    summary = {}
+
+    for expense in expenses:
+        category = expense["Category"]
+        amount = float(expense["Amount"])
+
+        summary[category] = summary.get(category, 0) + amount
+
+    print("\n--- CATEGORY-WISE SUMMARY ---")
+    for category, total in summary.items():
+        print(f"{category}: Rs. {total:.2f}")
+
+
+# Total spending report
+def total_spending():
+    expenses = get_expenses()
+
+    total = sum(float(e["Amount"]) for e in expenses)
+
+    print(f"\nTotal Spending: Rs. {total:.2f}")
+
+
+# Monthly spending report
+def monthly_report():
+    month = input("Enter month (YYYY-MM): ")
+
+    try:
+        datetime.strptime(month, "%Y-%m")
+    except ValueError:
+        print("Invalid month format!")
+        return
+
+    expenses = get_expenses()
+
+    monthly_total = 0
+
+    for expense in expenses:
+        if expense["Date"].startswith(month):
+            monthly_total += float(expense["Amount"])
+
+    print(f"Spending in {month}: Rs. {monthly_total:.2f}")
+
+
+# Main menu
+def main():
+    initialize_file()
+
+    while True:
+        print("\n===== EXPENSE TRACKER =====")
+        print("1. Add Expense")
+        print("2. View Expenses")
+        print("3. Category-wise Summary")
+        print("4. Total Spending")
+        print("5. Monthly Report")
+        print("6. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            add_expense()
+        elif choice == "2":
+            view_expenses()
+        elif choice == "3":
+            category_summary()
+        elif choice == "4":
+            total_spending()
+        elif choice == "5":
+            monthly_report()
+        elif choice == "6":
+            print("Thank you for using Expense Tracker!")
+            break
+        else:
+            print("Invalid choice! Try again.")
+
+
+if __name__ == "__main__":
+    main()
